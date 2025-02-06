@@ -1335,11 +1335,11 @@ void pybind11::non_limited_api::pybind11NLA_cpp_function_initialize_generic(cpp_
     detail::function_record *chain = nullptr, *chain_start = rec;
     if (rec->sibling) {
         if (PyCFunction_Check(rec->sibling.ptr())) {
-            auto *self = PyCFunction_GET_SELF(rec->sibling.ptr());
-            if (!isinstance<capsule>(self)) {
+            auto *self_ = PyCFunction_GET_SELF(rec->sibling.ptr());
+            if (!isinstance<capsule>(self_)) {
                 chain = nullptr;
             } else {
-                auto rec_capsule = reinterpret_borrow<capsule>(self);
+                auto rec_capsule = reinterpret_borrow<capsule>(self_);
                 if (detail::is_function_record_capsule(rec_capsule)) {
                     chain = rec_capsule.get_pointer<detail::function_record>();
                     /* Never append a method to an overload chain of a parent class;
