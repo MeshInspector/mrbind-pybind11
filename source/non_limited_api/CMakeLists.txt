@@ -76,14 +76,22 @@ else()
   target_include_directories(${PROJECT_NAME} PRIVATE ../../include)
   target_include_directories(${PROJECT_NAME} PUBLIC ${Python_INCLUDE_DIRS})
   target_link_libraries(${PROJECT_NAME} PUBLIC pybind11nonlimitedapi_stubs)
-  target_link_libraries(${PROJECT_NAME} PUBLIC Python::Python)
+
+  if (MSVC)
+    target_link_libraries(${PROJECT_NAME} PUBLIC python${Python_VERSION_MAJOR}${Python_VERSION_MINOR})
+  else()
+    target_link_libraries(${PROJECT_NAME} PUBLIC Python::Python)
+  endif()
 
   if (APPLE)
     target_link_options(${PROJECT_NAME} PRIVATE -undefined dynamic_lookup)
   endif()
 
   if (NOT("${PYBIND11_NONLIMITEDAPI_LIBRARY_OUTPUT_DIR}" STREQUAL ""))
-    set_target_properties(${PROJECT_NAME} PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${PYBIND11_NONLIMITEDAPI_LIBRARY_OUTPUT_DIR})
+    # For Windows.
+    set_target_properties(${PROJECT_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${PYBIND11_NONLIMITEDAPI_LIBRARY_OUTPUT_DIR}")
+    # For everything else...
+    set_target_properties(${PROJECT_NAME} PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${PYBIND11_NONLIMITEDAPI_LIBRARY_OUTPUT_DIR}")
   endif()
 
   install(TARGETS ${PROJECT_NAME} EXPORT ${PROJECT_NAME}
