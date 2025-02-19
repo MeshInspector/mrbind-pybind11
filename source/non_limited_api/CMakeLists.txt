@@ -20,7 +20,7 @@ endif()
 
 option(PYBIND11_NONLIMITEDAPI_BUILD_STUBS "Build the stubs library." ON)
 
-set(PYBIND11_NONLIMITEDAPI_PYTHON_MIN_VERSION_HEX "" CACHE STRING "A hex Python version to bake into the library, e.g. `0x030800f0` for 3.8 (the `f0` suffix is always there and means a release version).")
+set(PYBIND11_NONLIMITEDAPI_PYTHON_MIN_VERSION_HEX "0x030800f0" CACHE STRING "A hex Python version to bake into the library, e.g. `0x030800f0` for 3.8 (the `f0` suffix is always there and means a release version).")
 set(PYBIND11_NONLIMITEDAPI_SUFFIX "" CACHE STRING "A custom suffix to append to the built library name.")
 set(PYBIND11_NONLIMITEDAPI_LIBRARY_OUTPUT_DIR "" CACHE PATH "Replaces the library installation path for the shim.")
 
@@ -65,8 +65,8 @@ if (${PYBIND11_NONLIMITEDAPI_BUILD_STUBS})
   endif()
 endif()
 
-if (PYBIND11_NONLIMITEDAPI_PYTHON_MIN_VERSION_HEX STREQUAL "")
-  message("Not building shim because no Python version is specified.")
+if ("${PYBIND11_NONLIMITEDAPI_SUFFIX}" STREQUAL "")
+  message("Not building shim because PYBIND11_NONLIMITEDAPI_SUFFIX is not specified")
 else()
   if (NOT "${PYBIND11_NONLIMITEDAPI_SUFFIX}" STREQUAL "")
     set(PYBIND11_NONLIMITEDAPI_UNDERSCORE "_")
@@ -74,7 +74,7 @@ else()
     set(PYBIND11_NONLIMITEDAPI_UNDERSCORE "")
   endif()
 
-  set(PYBIND11_NONLIMITEDAPI_LIBNAME "pybind11nonlimitedapi${PYBIND11_NONLIMITEDAPI_UNDERSCORE}${PYBIND11_NONLIMITEDAPI_SUFFIX}_${Python_VERSION_MAJOR}.${Python_VERSION_MINOR}")
+  set(PYBIND11_NONLIMITEDAPI_LIBNAME "pybind11nonlimitedapi_${PYBIND11_NONLIMITEDAPI_SUFFIX}_${Python_VERSION_MAJOR}.${Python_VERSION_MINOR}")
   project(${PYBIND11_NONLIMITEDAPI_LIBNAME})
   add_library(${PROJECT_NAME} SHARED non_limited_api.cpp)
 
