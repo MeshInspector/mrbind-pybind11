@@ -4,7 +4,7 @@
 
 ### Is this production ready?
 
-Yes! While this still has rought edges, we [are using it in production](https://pypi.org/project/meshlib/).
+Yes, sort of! While it still has rough edges, we [are using it in production](https://pypi.org/project/meshlib/).
 
 ### How does it work?
 
@@ -13,6 +13,8 @@ The version-dependent code was moved to a tiny shared library. You must build a 
 ### How to use?
 
 This isn't header-only unlike the upstream Pybind. You must build the `pybind11nonlimitedapi_stubs` shared library and link your code against it.
+
+Link against `python3.lib` on Windows (as opposed to a version-specific `python3??.lib`). On Mac, pass `-Xlinker -undefined -Xlinker dynamic_lookup` and don't link Python at all (same as you would normally do with upstream Pybind). On Linux don't link Python at all (undefined references are not checked during library linking).
 
 You must also build N `pybind11nonlimitedapi_MyLib_3.??` shared libraries, for each Python version you want to support (3.8, 3.9, etc), and distribute them as a part of your wheel. The correct library is selected at runtime.
 
