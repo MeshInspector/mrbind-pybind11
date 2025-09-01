@@ -190,6 +190,8 @@ PYBIND11_NONLIMITEDAPI_FUNC(int, pybind11_clear, (PyObject *self), (self))
 PYBIND11_NONLIMITEDAPI_FUNC(void, globals, (std::optional<dict> &out), (out))
 PYBIND11_NONLIMITEDAPI_FUNC(PyObject *, dict_getitemstringref, (PyObject *v, const char *key), (v, key))
 
+PYBIND11_NONLIMITEDAPI_FUNC(bool, getPyUnicodeUtf8, (PyObject * obj, const char *& data, size_t & length, int & kind, size_t & codepoint_cnt, bool & direct_insert), (obj, data, length, kind, codepoint_cnt, direct_insert))
+
 PYBIND11_NAMESPACE_END(non_limited_api)
 PYBIND11_NAMESPACE_END(PYBIND11_NAMESPACE)
 
