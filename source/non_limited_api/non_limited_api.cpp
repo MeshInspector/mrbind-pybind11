@@ -4,8 +4,17 @@
 
 #define PYBIND11_NONLIMITEDAPI_API_IMPL PYBIND11_NONLIMITEDAPI_EXPORT
 
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable: 4548) // expression before comma has no effect; expected expression with side-effect
+#endif
+
 #include "pybind11/pybind11.h"
 #include "pybind11/embed.h"
+
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
 
 using namespace pybind11;
 using namespace pybind11::detail;
@@ -1365,8 +1374,15 @@ void pybind11::non_limited_api::pybind11NLA_cpp_function_initialize_generic(cpp_
         rec->def = new PyMethodDef();
         std::memset(rec->def, 0, sizeof(PyMethodDef));
         rec->def->ml_name = rec->name;
+        #ifdef _MSC_VER
+        #pragma warning(push)
+        #pragma warning(disable: 4191) // 'reinterpret_cast': unsafe conversion from 'A' to 'B'; Calling this function through the result pointer may cause your program to fail
+        #endif
         rec->def->ml_meth
             = reinterpret_cast<PyCFunction>(reinterpret_cast<void (*)()>(self.dispatcher));
+        #ifdef _MSC_VER
+        #pragma warning(pop)
+        #endif
         rec->def->ml_flags = METH_VARARGS | METH_KEYWORDS;
 
         capsule rec_capsule(unique_rec.release(),
