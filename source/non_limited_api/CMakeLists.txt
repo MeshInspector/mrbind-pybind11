@@ -10,6 +10,9 @@ if (MSVC)
   # Don't assume that extern C functions don't throw exceptions, because ours do throw.
   # The default flag is `/EHsc`, while we want only `/EHs`, so we remove the `c` part with this `/EHc-`.
   add_compile_options( /EHc- )
+  # Disabling following warnings:
+  #   warning C4191: 'reinterpret_cast': unsafe conversion
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4191")
 endif()
 
 if (NOT WIN32)
