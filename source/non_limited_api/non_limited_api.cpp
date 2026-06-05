@@ -43,7 +43,6 @@ PyObject *  pybind11::non_limited_api::pybind11NLA_PyCFunction_GET_SELF_    (PyO
 Py_complex  pybind11::non_limited_api::pybind11NLA_PyComplex_AsCComplex     (PyObject *obj)                                    {return ::PyComplex_AsCComplex(obj);}
 const char *pybind11::non_limited_api::pybind11NLA_PyUnicode_AsUTF8AndSize  (PyObject *unicode, ssize_t *size)                 {return ::PyUnicode_AsUTF8AndSize(unicode, size);}
 PyObject *  pybind11::non_limited_api::pybind11NLA_PyRun_String_            (const char *str, int s, PyObject *g, PyObject *l) {return PyRun_String(str, s, g, l);}
-FILE *      pybind11::non_limited_api::pybind11NLA__Py_fopen_obj            (PyObject *path, const char *mode)                 {return ::_Py_fopen_obj(path, mode);}
 PyObject *  pybind11::non_limited_api::pybind11NLA_PyRun_FileEx_            (FILE *fp, const char *p, int s, PyObject *g, PyObject *l, int c) {return PyRun_FileEx(fp, p, s, g, l, c);}
 void        pybind11::non_limited_api::pybind11NLA_PyMem_RawFree            (void *ptr)                                        {return ::PyMem_RawFree(ptr);}
 PyConfig *  pybind11::non_limited_api::pybind11NLA_PyConfig_new             ()                                                 {return new PyConfig;}
@@ -63,6 +62,29 @@ const char *pybind11::non_limited_api::pybind11NLA_PyStatus_get_err_msg     (con
 PyStatus_ * pybind11::non_limited_api::pybind11NLA_Py_InitializeFromConfig  (const PyConfig *config)                           {return (PyStatus_ *)new PyStatus(::Py_InitializeFromConfig(config));}
 int         pybind11::non_limited_api::pybind11NLA_PyGen_Check_             (PyObject *obj)                                    {return PyGen_Check(obj);}
 PyObject *  pybind11::non_limited_api::pybind11NLA_PyInterpreterState_GetDict(PyInterpreterState *state)                       {return ::PyInterpreterState_GetDict(state);}
+
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+#elif defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#elif defined(_MSC_VER)
+#pragma warning(push)
+#pragma warning(disable: 4996)
+#endif
+
+// -------- MOVE DEPRECATED FUNCTIONS HERE
+// deprecated in Python 3.14
+FILE *      pybind11::non_limited_api::pybind11NLA__Py_fopen_obj            (PyObject *path, const char *mode)                 {return ::_Py_fopen_obj(path, mode);}
+
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#elif defined(__GNUC__)
+#pragma GCC diagnostic pop
+#elif defined(_MSC_VER)
+#pragma warning(pop)
+#endif
 
 // -------- STATIC FUNCTIONS:
 
