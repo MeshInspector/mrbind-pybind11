@@ -4,3 +4,8 @@ if(@PYBIND11_NONLIMITEDAPI_BUILD_STUBS@)
   include("${CMAKE_CURRENT_LIST_DIR}/pybind11nonlimitedapi_stubs-targets.cmake")
   check_required_components(pybind11nonlimitedapi_stubs)
 endif()
+
+if(NOT "@PYBIND11_NONLIMITEDAPI_SUFFIX@" STREQUAL "")
+  set(pybind11nonlimitedapi_SHIM_PYTHON_VERSION "@Python_VERSION_MAJOR@.@Python_VERSION_MINOR@")
+  set_and_check(pybind11nonlimitedapi_SHIM_FILE "${PACKAGE_PREFIX_DIR}/@PYBIND11_NONLIMITEDAPI_SHIM_INSTALLED_FILE@")
+endif()

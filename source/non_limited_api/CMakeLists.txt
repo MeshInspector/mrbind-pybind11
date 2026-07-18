@@ -29,12 +29,11 @@ option(PYBIND11_NONLIMITEDAPI_BUILD_STUBS "Build the stubs library." ON)
 
 set(PYBIND11_NONLIMITEDAPI_PYTHON_MIN_VERSION_HEX "0x030800f0" CACHE STRING "A hex Python version to bake into the library, e.g. `0x030800f0` for 3.8 (the `f0` suffix is always there and means a release version).")
 set(PYBIND11_NONLIMITEDAPI_SUFFIX "" CACHE STRING "A custom suffix to append to the built library name.")
-set(PYBIND11_NONLIMITEDAPI_LIBRARY_OUTPUT_DIR "" CACHE PATH "Replaces the library installation path for the shim.")
+set(PYBIND11_NONLIMITEDAPI_COMPILER_TYPE_STRING "" CACHE STRING "If non-empty, bake this `PYBIND11_COMPILER_TYPE` override into the stubs and everything linking them.")
+set(PYBIND11_NONLIMITEDAPI_BUILD_ABI_STRING "" CACHE STRING "If non-empty, bake this `PYBIND11_BUILD_ABI` override into the stubs and everything linking them.")
+set(PYBIND11_NONLIMITEDAPI_INTERNALS_VERSION "" CACHE STRING "If non-empty, bake this `PYBIND11_INTERNALS_VERSION` override into the stubs and everything linking them.")
 
 include(GNUInstallDirs)
-
-set(PYBIND11_NONLIMITEDAPI_INSTALL_LIBDIR_STUBS "${CMAKE_INSTALL_LIBDIR}" CACHE PATH "Where to install the stub library.")
-set(PYBIND11_NONLIMITEDAPI_INSTALL_LIBDIR_SHIMS "${CMAKE_INSTALL_LIBDIR}" CACHE PATH "Where to install the shim library.")
 
 option(PYBIND11_NONLIMITEDAPI_INSTALL_EXPORTS "Whether to install the cmake configs for our libraries." OFF)
 
@@ -44,8 +43,22 @@ if (${PYBIND11_NONLIMITEDAPI_BUILD_STUBS})
 
   # Probably not the smartest move to mark this directory private, but it's easier than figuring out the proper way.
   target_include_directories(${PROJECT_NAME} PRIVATE ../../include)
-  target_include_directories(${PROJECT_NAME} PUBLIC ${Python_INCLUDE_DIRS})
+  target_include_directories(${PROJECT_NAME} PUBLIC "$<BUILD_INTERFACE:${Python_INCLUDE_DIRS}>" "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>")
   target_compile_definitions(${PROJECT_NAME} PUBLIC PYBIND11_NONLIMITEDAPI_LIB_SUFFIX_FOR_MODULE=\"${PYBIND11_NONLIMITEDAPI_SUFFIX}\")
+
+  # PUBLIC so that the stubs, the shims, and every module linking the stubs agree on the resulting pybind ABI.
+  if (NOT "${PYBIND11_NONLIMITEDAPI_PYTHON_MIN_VERSION_HEX}" STREQUAL "")
+    target_compile_definitions(${PROJECT_NAME} PUBLIC Py_LIMITED_API=${PYBIND11_NONLIMITEDAPI_PYTHON_MIN_VERSION_HEX})
+  endif()
+  if (NOT "${PYBIND11_NONLIMITEDAPI_COMPILER_TYPE_STRING}" STREQUAL "")
+    target_compile_definitions(${PROJECT_NAME} PUBLIC PYBIND11_COMPILER_TYPE=\"${PYBIND11_NONLIMITEDAPI_COMPILER_TYPE_STRING}\")
+  endif()
+  if (NOT "${PYBIND11_NONLIMITEDAPI_BUILD_ABI_STRING}" STREQUAL "")
+    target_compile_definitions(${PROJECT_NAME} PUBLIC PYBIND11_BUILD_ABI=\"${PYBIND11_NONLIMITEDAPI_BUILD_ABI_STRING}\")
+  endif()
+  if (NOT "${PYBIND11_NONLIMITEDAPI_INTERNALS_VERSION}" STREQUAL "")
+    target_compile_definitions(${PROJECT_NAME} PUBLIC PYBIND11_INTERNALS_VERSION=${PYBIND11_NONLIMITEDAPI_INTERNALS_VERSION})
+  endif()
 
   # We don't link the entire `Python::Python` here because that's minor-version-dependent. It's not entirely clear to me what's the stable-ABI equivalent.
   # On Mac and Linux, not linking anything at all seems to work so far. But on Windows the Python header forces `python3.lib` (in this case,
@@ -57,8 +70,9 @@ if (${PYBIND11_NONLIMITEDAPI_BUILD_STUBS})
   install(
     TARGETS ${PROJECT_NAME}
     EXPORT ${PROJECT_NAME}-targets
-    ARCHIVE DESTINATION ${PYBIND11_NONLIMITEDAPI_INSTALL_LIBDIR_STUBS}
-    LIBRARY DESTINATION ${PYBIND11_NONLIMITEDAPI_INSTALL_LIBDIR_STUBS}
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
   )
   if (PYBIND11_NONLIMITEDAPI_INSTALL_EXPORTS)
     install(
@@ -76,19 +90,13 @@ endif()
 if ("${PYBIND11_NONLIMITEDAPI_SUFFIX}" STREQUAL "")
   message("Not building shim because PYBIND11_NONLIMITEDAPI_SUFFIX is not specified")
 else()
-  if (NOT "${PYBIND11_NONLIMITEDAPI_SUFFIX}" STREQUAL "")
-    set(PYBIND11_NONLIMITEDAPI_UNDERSCORE "_")
-  else()
-    set(PYBIND11_NONLIMITEDAPI_UNDERSCORE "")
-  endif()
-
   set(PYBIND11_NONLIMITEDAPI_LIBNAME "pybind11nonlimitedapi_${PYBIND11_NONLIMITEDAPI_SUFFIX}_${Python_VERSION_MAJOR}.${Python_VERSION_MINOR}")
   project(${PYBIND11_NONLIMITEDAPI_LIBNAME})
   add_library(${PROJECT_NAME} SHARED non_limited_api.cpp)
 
   # Probably not the smartest move to mark this directory private, but it's easier than figuring out the proper way.
   target_include_directories(${PROJECT_NAME} PRIVATE ../../include)
-  target_include_directories(${PROJECT_NAME} PUBLIC ${Python_INCLUDE_DIRS})
+  target_include_directories(${PROJECT_NAME} PUBLIC "$<BUILD_INTERFACE:${Python_INCLUDE_DIRS}>")
   if (PYBIND11_NONLIMITEDAPI_BUILD_STUBS)
     target_link_libraries(${PROJECT_NAME} PUBLIC pybind11nonlimitedapi_stubs)
   else()
@@ -106,18 +114,12 @@ else()
     target_link_options(${PROJECT_NAME} PRIVATE -undefined dynamic_lookup)
   endif()
 
-  if (NOT("${PYBIND11_NONLIMITEDAPI_LIBRARY_OUTPUT_DIR}" STREQUAL ""))
-    # For Windows.
-    set_target_properties(${PROJECT_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${PYBIND11_NONLIMITEDAPI_LIBRARY_OUTPUT_DIR}")
-    # For everything else...
-    set_target_properties(${PROJECT_NAME} PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${PYBIND11_NONLIMITEDAPI_LIBRARY_OUTPUT_DIR}")
-  endif()
-
   install(
     TARGETS ${PROJECT_NAME}
     EXPORT ${PROJECT_NAME}-targets
-    ARCHIVE DESTINATION ${PYBIND11_NONLIMITEDAPI_INSTALL_LIBDIR_SHIMS}
-    LIBRARY DESTINATION ${PYBIND11_NONLIMITEDAPI_INSTALL_LIBDIR_SHIMS}
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
   )
   if (PYBIND11_NONLIMITEDAPI_INSTALL_EXPORTS)
     install(
@@ -125,6 +127,13 @@ else()
       NAMESPACE pybind11nonlimitedapi::
       DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/pybind11nonlimitedapi
     )
+  endif()
+
+  # The installed shim location, exposed to consumers through the CMake config.
+  if (WIN32)
+    set(PYBIND11_NONLIMITEDAPI_SHIM_INSTALLED_FILE "${CMAKE_INSTALL_BINDIR}/${CMAKE_SHARED_LIBRARY_PREFIX}${PYBIND11_NONLIMITEDAPI_LIBNAME}${CMAKE_SHARED_LIBRARY_SUFFIX}")
+  else()
+    set(PYBIND11_NONLIMITEDAPI_SHIM_INSTALLED_FILE "${CMAKE_INSTALL_LIBDIR}/${CMAKE_SHARED_LIBRARY_PREFIX}${PYBIND11_NONLIMITEDAPI_LIBNAME}${CMAKE_SHARED_LIBRARY_SUFFIX}")
   endif()
 endif()
 
