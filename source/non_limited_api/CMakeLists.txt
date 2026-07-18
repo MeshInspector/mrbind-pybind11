@@ -110,10 +110,6 @@ else()
     target_link_libraries(${PROJECT_NAME} PUBLIC Python::Python)
   endif()
 
-  if (APPLE)
-    target_link_options(${PROJECT_NAME} PRIVATE -undefined dynamic_lookup)
-  endif()
-
   install(
     TARGETS ${PROJECT_NAME}
     EXPORT ${PROJECT_NAME}-targets
