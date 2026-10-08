@@ -1269,6 +1269,26 @@ auto method_adaptor(Return (Class::*pmf)(Args...) const) -> Return (Derived::*)(
     return pmf;
 }
 
+#ifdef __cpp_noexcept_function_type
+template <typename Derived, typename Return, typename Class, typename... Args>
+auto method_adaptor(Return (Class::*pmf)(Args...) noexcept)
+    -> Return (Derived::*)(Args...) noexcept {
+    static_assert(
+        detail::is_accessible_base_of<Class, Derived>::value,
+        "Cannot bind an inaccessible base class method; use a lambda definition instead");
+    return pmf;
+}
+
+template <typename Derived, typename Return, typename Class, typename... Args>
+auto method_adaptor(Return (Class::*pmf)(Args...) const noexcept)
+    -> Return (Derived::*)(Args...) const noexcept {
+    static_assert(
+        detail::is_accessible_base_of<Class, Derived>::value,
+        "Cannot bind an inaccessible base class method; use a lambda definition instead");
+    return pmf;
+}
+#endif
+
 template <typename type_, typename... options>
 class class_ : public detail::generic_type {
     template <typename T>
